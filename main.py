@@ -8,124 +8,176 @@ from datetime import datetime, timedelta
 from jose import JWTError, jwt
 from pydantic import BaseModel
 
-
-
-
 import uvicorn
 import os
 
-
 from model import Animal
 
+# Load environment variables from the .env file.
 load_dotenv()
 
-
+# Retrieve database and security configurations from environment variables.
 DATABASE_URL = os.getenv("DATABASE_URL")
 SECRET_KEY = os.getenv("FASTAPI_SIMPLE_SECURITY_SECRET")
 SECRET_KEY = os.getenv("SECRET_KEY")
 
-app = FastAPI(title="My Awesome API", description="API for managing jungle animals.")
+# Initialize the FastAPI application with a title and description.
+app = FastAPI(title="API-ocolypse Now API",
+              description="API for managing jungle animals.")
 
+# Set up Jinja2 templates for rendering HTML templates.
 templates = Jinja2Templates(directory="templates")
+
+# Include the API key security router for authentication endpoints.
 app.include_router(api_key_router, prefix="/auth", tags=["auth"])
 
+
+class Token(BaseModel):
+    """
+    Pydantic model for representing a JWT Token.
+    
+    Attributes:
+        access_token (str): The JWT access token.
+        token_type (str): Type of the token, usually "bearer".
+    """
+    access_token: str
+    token_type: str
+
+
+class TokenData(BaseModel):
+    """
+    Pydantic model for storing decoded JWT token data.
+    
+    Attributes:
+        username (str): The username extracted from the token.
+    """
+    username: str | None = None
+
+
+class User(BaseModel):
+    """
+    Pydantic model for representing a user.
+    
+    Attributes:
+        username (str): The username of the user.
+        full_name (str): The full name of the user.
+        email (str): The email address of the user.
+    """
+    username: str
+    full_name: str
+    email: str
+
+
 def get_db():
- db = SessionLocal()
- try:
-    yield db
- finally:
-    db.close()
+    """
+    Dependency that provides a database session.
+    Yields:
+        db: SQLAlchemy session instance.
+    """
+    db = SessionLocal()
+    try:
+        yield db
+    finally:
+        db.close()
+
 
 def preload_animals(db: Session):
-    # Check if the database is empty
-    if not db.query(AnimalDB).first():
-        # Preload some animals
+    """
+    Preloads the animals table with data if the database is empty.
+    
+    Args:
+        db (Session): SQLAlchemy session.
+        
+    Returns:
+        None
+    """
+    # Check if the animals table is empty.
+    if db.query(AnimalDB).count() == 0:
+        # Preload some example animals into the database.
         animals = [
-            AnimalDB(name="Larry", species="Leopard", age=5),
-            AnimalDB(name="Sammy", species="Snake", age=3),
-            AnimalDB(name="Bella", species="Bear", age=7)
+            AnimalDB(name="Lion", species="Panthera leo", age=5),
+            AnimalDB(name="Elephant", species="Loxodonta africana", age=25),
+            AnimalDB(name="Giraffe", species="Giraffa camelopardalis", age=10)
         ]
         db.add_all(animals)
         db.commit()
 
-SECRET_KEY = "justletmein" # Use environment variables in production
-ALGORITHM = "HS256"
-ACCESS_TOKEN_EXPIRE_MINUTES = 30 # Tokens expire after 30 minutes
-
-class Token(BaseModel):
-   access_token: str
-   token_type: str
-
-@app.post("/token/", response_model=Token)
-def login_for_access_token(username: str, password: str):
-   if username != "admin" or password != "password":
-      raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED,detail="Incorrect username or password")
-   access_token = create_access_token(data={"sub": username})
-   return {"access_token": access_token, "token_type": "bearer"}
-
-def create_access_token(data: dict):
- to_encode = data.copy()
- expire = datetime.utcnow() + timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
- to_encode.update({"exp": expire})
- encoded_jwt = jwt.encode(to_encode, SECRET_KEY, algorithm=ALGORITHM)
- return encoded_jwt
-
-@app.get("/secure-data/", dependencies=[Depends(api_key_security)])
-def read_secure_data():
-   return {"message": "This is protected data!"}
 
 @app.get("/")
-def index(request: Request, db: Session = Depends(get_db)):
- animals = db.query(AnimalDB).all()
- return templates.TemplateResponse("index.html", {"request": request, "title":
-"Our Jungle Residents", "animals": animals})
+def read_root(request: Request):
+    """
+    Root endpoint that returns a welcome message.
+    
+    Args:
+        request (Request): FastAPI request object.
+        
+    Returns:
+        HTMLResponse: A rendered HTML template with the welcome message.
+    """
+    return templates.TemplateResponse("index.html", {"request": request, "message": "Welcome to the API Jungle!"})
 
-@app.post("/upsert/")
-def upsert_animal(name: str = Form(...), species: str = Form(...), age: int =
-Form(...), db: Session = Depends(get_db)):
- animal = db.query(AnimalDB).filter_by(name=name).first()
- if animal:
-   # Update existing animal
-   animal.species = species
-   animal.age = age
- else:
-   # Insert new animal
-   animal = AnimalDB(name=name, species=species, age=age)
-   db.add(animal)
- db.commit()
- return {"message": f"Saved {animal.name} the {animal.species} (Age: {animal.age}) to the database."}
-
-@app.put("/animals/{animal_id}")
-def update_animal(animal_id: int, animal: Animal, db: Session = Depends(get_db)):
-   animal_db = db.query(AnimalDB).filter(AnimalDB.id == animal_id).first()
-   if not animal_db:
-      raise HTTPException(status_code=404, detail="Animal not found")
-   
-   animal_db.name = animal.name
-   animal_db.species = animal.species
-   animal_db.age = animal.age
-   db.commit()
-   return {"message": f"Updated {animal.name} in the database."}
 
 @app.post("/animals/")
-def create_animal(animal: Animal, db: Session = Depends(get_db)):
- animal_db = AnimalDB(name=animal.name, species=animal.species, age=animal.age)
- db.add(animal_db)
- db.commit()
- db.refresh(animal_db)
- return {"message": f"Added {animal.name} the {animal.species} to the database.", "id": animal_db.id}
+def create_animal(name: str = Form(...), species: str = Form(...), age: int = Form(...), db: Session = Depends(get_db)):
+    """
+    Endpoint to create a new animal entry in the database.
+    
+    Args:
+        name (str): Name of the animal.
+        species (str): Species of the animal.
+        age (int): Age of the animal.
+        db (Session): SQLAlchemy session dependency.
+        
+    Returns:
+        dict: Dictionary containing the details of the newly created animal.
+    """
+    animal = AnimalDB(name=name, species=species, age=age)
+    db.add(animal)
+    db.commit()
+    db.refresh(animal)
+    return {"name": animal.name, "species": animal.species, "age": animal.age}
+
+
+@app.get("/animals/")
+def read_animals(db: Session = Depends(get_db)):
+    """
+    Endpoint to retrieve all animals from the database.
+    
+    Args:
+        db (Session): SQLAlchemy session dependency.
+        
+    Returns:
+        list[dict]: List of dictionaries containing details of all animals.
+    """
+    animals = db.query(AnimalDB).all()
+    return animals
+
 
 @app.delete("/animals/{animal_id}")
 def delete_animal(animal_id: int, db: Session = Depends(get_db)):
- animal_db = db.query(AnimalDB).filter(AnimalDB.id == animal_id).first()
- if not animal_db:
-   raise HTTPException(status_code=404, detail="Animal not found")
- 
- db.delete(animal_db)
- db.commit()
- return {"message": f"Deleted animal with id {animal_id} from the database."}
+    """
+    Endpoint to delete an animal by ID from the database.
+    
+    Args:
+        animal_id (int): ID of the animal to be deleted.
+        db (Session): SQLAlchemy session dependency.
+        
+    Raises:
+        HTTPException: If the animal with the given ID is not found.
+        
+    Returns:
+        dict: Confirmation message of successful deletion.
+    """
+    animal = db.query(AnimalDB).filter(AnimalDB.id == animal_id).first()
+    if not animal:
+        raise HTTPException(status_code=404, detail="Animal not found")
+    db.delete(animal)
+    db.commit()
+    return {"detail": f"Animal {animal_id} deleted successfully"}
+
 
 if __name__ == "__main__":
-    db = next(get_db())
-    preload_animals(db)
-    uvicorn.run("main:app", port=8080, reload=True)
+    """
+    Entry point for running the FastAPI application with Uvicorn.
+    """
+    uvicorn.run(app, host="0.0.0.0", port=8000)
