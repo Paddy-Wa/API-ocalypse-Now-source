@@ -26,25 +26,24 @@ This repository contains the fully functioning **source code** from the book, or
 1. **Clone the Repo**:
    ```bash
    git clone https://github.com/your-username/API-ocalypse-Now-Source-Code.git
-Install Dependencies: Navigate to the source code folder and install the required packages.
 
-```bash
-Copy code
-pip install -r requirements.txt
-Run the FastAPI Application: Fire up the app and start exploring your API with Swagger docs!
+2. **Install Dependencies**: Navigate to the source code folder and install the required packages.
+   ```bash
+   pip install -r requirements.txt
 
-```bash
-Copy code
-uvicorn main:app --reload
-Explore Swagger Docs: Once the server is running, open your browser and go to http://127.0.0.1:8000/docs to explore the API documentation.
+3. **Run the FastAPI Application**: Fire up the app and start exploring your API with Swagger docs!
+   ```bash
+   uvicorn main:app --reload
+
+4. **Explore Swagger Docs**: Once the server is running, open your browser and go to http://127.0.0.1:8000/docs to explore the API documentation.
 
 ## 🤔 Why Buy the Book?
 If you stumbled across this repo but don’t yet have the book, you’re missing out! API-ocalypse Now is more than just code. It's your personal guide through the complexities of building modern APIs:
 
-Clear, step-by-step instructions to help you learn by doing.
-Real-world advice on security, performance, and scalability.
-Witty, engaging writing to make learning API development fun (yes, really).
-Bonus features like handling asynchronous tasks, building front-ends with Jinja2, and much more.
+- Clear, step-by-step instructions to help you learn by doing.
+- Real-world advice on security, performance, and scalability.
+- Witty, engaging writing to make learning API development fun (yes, really).
+ -Bonus features like handling asynchronous tasks, building front-ends with Jinja2, and much more.
 
 Get your copy today and become the API developer you were born to be!
 📘 Buy the Book on Amazon
@@ -58,8 +57,9 @@ Happy coding! 👨‍💻👩‍💻
 "API-ocalypse Now" is your essential field guide to building fast, secure, and flexible APIs with Python. Whether you're looking to up your FastAPI game, understand complex data validation, or secure your APIs with industry best practices, this book has you covered.
 
 ## 🔗 Useful Links:
-FastAPI Documentation
-SQLAlchemy Documentation
-Pydantic Documentation
-TryHackMe | HackTheBox
+- [FastAPI Documentation](https://fastapi.tiangolo.com/)
+- [SQLAlchemy Documentation](https://www.sqlalchemy.org/docs/)
+- [Pydantic Documentation](https://pydantic-docs.helpmanual.io/)
+- [TryHackMe](https://tryhackme.com/)
+- [HackTheBox](https://www.hackthebox.com/)
 
