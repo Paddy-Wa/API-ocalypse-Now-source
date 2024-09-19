@@ -2,7 +2,7 @@
 
 Welcome to the source code repository for **API-ocalypse Now: Python’s Guide to Secure and Flexible Data Handling**! 🐍🎉 This book is your complete survival guide to conquering the wild world of API development using **FastAPI**, **Pydantic**, **SQLAlchemy**, and more. Whether you're just starting out or you’re already a seasoned API warrior, you'll find everything you need right here.
 
-### 📘 [Buy the Book on Amazon](https://www.amazon.com/your-book-link-here)  
+### 📘 [Buy the Book on Amazon](https://www.amazon.com/s?k=API-ocalypse+Now)  
 Get your hands on the full guide, packed with practical lessons, expert advice, and just the right amount of dry humor. It’s your roadmap through the API jungle!
 
 ---
@@ -46,7 +46,7 @@ If you stumbled across this repo but don’t yet have the book, you’re missing
  -Bonus features like handling asynchronous tasks, building front-ends with Jinja2, and much more.
 
 Get your copy today and become the API developer you were born to be!
-📘 Buy the Book on Amazon
+### 📘 [Buy the Book on Amazon](https://www.amazon.com/s?k=API-ocalypse+Now)
 
 ## 💬 Need Help?
 Feel free to submit issues if you have questions or run into any bugs with the source code. We’re all in this jungle together!
