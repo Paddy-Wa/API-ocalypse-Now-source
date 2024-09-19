@@ -25,7 +25,7 @@ This repository contains the fully functioning **source code** from the book, or
 
 1. **Clone the Repo**:
    ```bash
-   git clone https://github.com/your-username/API-ocalypse-Now-Source-Code.git
+   git clone https://github.com/Paddy-Wa/API-ocalypse-Now-source.git
 
 2. **Install Dependencies**: Navigate to the source code folder and install the required packages.
    ```bash
