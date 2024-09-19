@@ -21,7 +21,7 @@ SECRET_KEY = os.getenv("SECRET_KEY")
 
 # Initialize FastAPI app
 app = FastAPI(
-    title="API-ocalypse Now API",
+    title="API-ocalypse API",
     description="API for managing jungle animals."
 )
 
@@ -107,7 +107,7 @@ def create_access_token(data: dict):
         str: The encoded JWT token.
     """
     to_encode = data.copy()
-    expire = datetime.utcnow() + timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
+    expire = datetime() + timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
     to_encode.update({"exp": expire})
     encoded_jwt = jwt.encode(to_encode, SECRET_KEY, algorithm=ALGORITHM)
     return encoded_jwt
