@@ -1,0 +1,17 @@
+{% extends "base.html" %}
+
+{% block content %}
+    <h2>{{ title }}</h2>
+    <form method="post" action="/upsert/">
+        <label for="name">Animal Name:</label>
+        <input type="text" id="name" name="name" value="{{ animal.name if animal else '' }}">
+    <br>
+    <label for="species">Species:</label>
+    <input type="text" id="species" name="species" value="{{ animal.species if animal else '' }}">
+    <br>
+    <label for="age">Age:</label>
+    <input type="number" id="age" name="age" value="{{ animal.age if animal else '' }}">
+    <br>
+    <button type="submit">Save Animal</button>
+    </form>
+   {% endblock %}

@@ -1,1 +1,11 @@
+{% extends "base.html" %}
 
+{% block content %}
+ <h2>{{ title }}</h2>
+ <ul>
+ {% for animal in animals %}
+ <li>{{ animal.name }} the {{ animal.species }} (Age:
+{{ animal.age }})</li>
+ {% endfor %}
+ </ul>
+{% endblock %}
