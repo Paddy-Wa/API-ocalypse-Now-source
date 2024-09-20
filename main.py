@@ -1,4 +1,3 @@
-
 from dotenv import load_dotenv
 from sqlalchemy.orm import Session
 from fastapi import FastAPI, Depends, Request, Form, HTTPException, status
@@ -32,6 +31,7 @@ templates = Jinja2Templates(directory="templates")
 # Include API key router for authentication
 app.include_router(api_key_router, prefix="/auth", tags=["auth"])
 
+
 def get_db():
     """
     Dependency to get a database session.
@@ -44,6 +44,7 @@ def get_db():
         yield db
     finally:
         db.close()
+
 
 def preload_animals(db: Session):
     """
@@ -61,10 +62,12 @@ def preload_animals(db: Session):
         db.add_all(animals)
         db.commit()
 
+
 # Security settings
 SECRET_KEY = "justletmein"  # Use environment variables in production
 ALGORITHM = "HS256"
 ACCESS_TOKEN_EXPIRE_MINUTES = 30  # Tokens expire after 30 minutes
+
 
 class Token(BaseModel):
     """
@@ -77,8 +80,18 @@ class Token(BaseModel):
     access_token: str
     token_type: str
 
+
+@app.on_event("startup")
+def startup_event():
+    """
+    Function that runs on app startup. Ensures the database is preloaded with animals if empty.
+    """
+    db = next(get_db())  # Get a database session
+    preload_animals(db)
+
+
 @app.post("/token/", response_model=Token)
-def login_for_access_token(username: str, password: str):
+async def login_for_access_token(username: str, password: str):
     """
     Endpoint to generate an access token.
 
@@ -97,6 +110,7 @@ def login_for_access_token(username: str, password: str):
     access_token = create_access_token(data={"sub": username})
     return {"access_token": access_token, "token_type": "bearer"}
 
+
 def create_access_token(data: dict):
     """
     Create a JWT access token.
@@ -113,8 +127,9 @@ def create_access_token(data: dict):
     encoded_jwt = jwt.encode(to_encode, SECRET_KEY, algorithm=ALGORITHM)
     return encoded_jwt
 
+
 @app.get("/")
-def index(request: Request, db: Session = Depends(get_db)):
+async def index(request: Request, db: Session = Depends(get_db)):
     """
     Render the index page with a list of animals.
 
@@ -131,8 +146,9 @@ def index(request: Request, db: Session = Depends(get_db)):
         {"request": request, "title": "Our Jungle Residents", "animals": animals}
     )
 
+
 @app.get("/secure-data/", dependencies=[Depends(api_key_security)])
-def read_secure_data():
+async def read_secure_data():
     """
     Endpoint to read secure data.
 
@@ -141,8 +157,9 @@ def read_secure_data():
     """
     return {"message": "This is protected data!"}
 
+
 @app.post("/upsert/")
-def upsert_animal(name: str = Form(...), species: str = Form(...), age: int = Form(...), db: Session = Depends(get_db)):
+async def upsert_animal(name: str = Form(...), species: str = Form(...), age: int = Form(...), db: Session = Depends(get_db)):
     """
     Endpoint to insert or update an animal.
 
@@ -167,8 +184,9 @@ def upsert_animal(name: str = Form(...), species: str = Form(...), age: int = Fo
     db.commit()
     return {"message": f"Saved {animal.name} the {animal.species} (Age: {animal.age}) to the database."}
 
+
 @app.post("/animals/")
-def create_animal(animal: Animal, db: Session = Depends(get_db)):
+async def create_animal(animal: Animal, db: Session = Depends(get_db)):
     """
     Endpoint to create a new animal.
 
@@ -187,8 +205,9 @@ def create_animal(animal: Animal, db: Session = Depends(get_db)):
     db.refresh(animal_db)
     return {"message": f"Added {animal.name} the {animal.species} to the database.", "id": animal_db.id}
 
+
 @app.put("/animals/{animal_id}")
-def update_animal(animal_id: int, animal: Animal, db: Session = Depends(get_db)):
+async def update_animal(animal_id: int, animal: Animal, db: Session = Depends(get_db)):
     """
     Endpoint to update an existing animal.
 
@@ -209,8 +228,9 @@ def update_animal(animal_id: int, animal: Animal, db: Session = Depends(get_db))
     db.commit()
     return {"message": f"Updated {animal.name} in the database."}
 
+
 @app.delete("/animals/{animal_id}")
-def delete_animal(animal_id: int, db: Session = Depends(get_db)):
+async def delete_animal(animal_id: int, db: Session = Depends(get_db)):
     """
     Endpoint to delete an animal.
 
@@ -228,7 +248,6 @@ def delete_animal(animal_id: int, db: Session = Depends(get_db)):
     db.commit()
     return {"message": f"Deleted animal with id {animal_id} from the database."}
 
+
 if __name__ == "__main__":
-    db = next(get_db())
-    preload_animals(db)
     uvicorn.run("main:app", port=8080, reload=True)
