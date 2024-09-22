@@ -57,7 +57,8 @@ def preload_animals(db: Session):
         animals = [
             AnimalDB(name="Larry", species="Leopard", age=5),
             AnimalDB(name="Sammy", species="Snake", age=3),
-            AnimalDB(name="Bella", species="Bear", age=7),
+            AnimalDB(name="Bob", species="Bear", age=7),
+            AnimalDB(name="Nutty", species="Squirell", age=4),
         ]
         db.add_all(animals)
         db.commit()
