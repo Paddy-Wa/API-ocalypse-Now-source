@@ -82,8 +82,8 @@ def startup_event():
     """
     Function that runs on app startup. Ensures the database is preloaded with animals if empty.
     """
-    db = next(get_db())  # Get a database session
-    preload_animals(db)
+    db = next(get_db())  # Get a database session # pragma: no cover
+    preload_animals(db)  # pragma: no cover
 
 
 @app.post("/token/", response_model=Token)
@@ -257,4 +257,4 @@ async def delete_animal(animal_id: int, db: Session = Depends(get_db)):
 
 
 if __name__ == "__main__":
-    uvicorn.run("main:app", port=8080, reload=True)
+    uvicorn.run("main:app", port=8080, reload=True) # pragma: no cover
