@@ -335,23 +335,9 @@ def test_login_for_access_token():
     """
     Test the login endpoint to generate a valid access token with correct credentials.
     """
-    response = client.post(
-        "/token/", data={"username": "admin", "password": "password"})
-    assert response.status_code == 200
-    token_data = response.json()
-    assert "access_token" in token_data
-    assert "token_type" in token_data
-    assert token_data["token_type"] == "bearer"
-
-
-def test_login_for_access_token():
-    """
-    Test the login endpoint to generate a valid access token with correct credentials.
-    """
     # Send username and password as query parameters
     response = client.post(
         "/token/", params={"username": "admin", "password": "password"})
-
     # Assert that the status code is 200 OK
     assert response.status_code == 200
 
@@ -360,3 +346,15 @@ def test_login_for_access_token():
     assert "access_token" in token_data
     assert "token_type" in token_data
     assert token_data["token_type"] == "bearer"
+
+
+def test_login_for_bad_access_token():
+    """
+    Test the login endpoint to generate a valid access token with correct credentials.
+    """
+    # Send username and password as query parameters
+    response = client.post(
+        "/token/", params={"username": "badadmin", "password": "password"})
+    # Assert that the status code is 200 OK
+    assert response.status_code == 401
+    assert response.json() == {"detail": "Incorrect username or password"}
