@@ -106,7 +106,6 @@ async def login_for_access_token(username: str, password: str):
     return {"access_token": access_token, "token_type": "bearer"}
 
 
-@app.get("/JWT/", response_model=Token)
 def create_access_token(data: dict):
     """
     Create a JWT access token.
