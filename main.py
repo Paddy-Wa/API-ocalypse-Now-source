@@ -17,13 +17,13 @@ load_dotenv()
 # Retrieve environment variables
 DATABASE_URL = os.getenv("DATABASE_URL")
 SECRET_KEY = os.getenv("FASTAPI_SIMPLE_SECURITY_SECRET")
-SECRET_KEY = os.getenv("SECRET_KEY")
+FASTAPI_SIMPLE_SECURITY_SECRET = os.getenv("FASTAPI_SIMPLE_SECURITY_SECRET")
+ACCESS_TOKEN_EXPIRE_MINUTES = os.getenv("ACCESS_TOKEN_EXPIRE_MINUTES")
+ALGORITHM = os.getenv("ALGORITHM")
 
 # Initialize FastAPI app
-app = FastAPI(
-    title="API-ocalypse API",
-    description="API for managing jungle animals."
-)
+app = FastAPI(title="API-ocalypse API",
+              description="API for managing jungle animals.")
 
 # Set up Jinja2 templates
 templates = Jinja2Templates(directory="templates")
@@ -57,16 +57,10 @@ def preload_animals(db: Session):
         animals = [
             AnimalDB(name="Larry", species="Leopard", age=5),
             AnimalDB(name="Sammy", species="Snake", age=3),
-            AnimalDB(name="Bella", species="Bear", age=7)
+            AnimalDB(name="Bella", species="Bear", age=7),
         ]
         db.add_all(animals)
         db.commit()
-
-
-# Security settings
-SECRET_KEY = "justletmein"  # Use environment variables in production
-ALGORITHM = "HS256"
-ACCESS_TOKEN_EXPIRE_MINUTES = 30  # Tokens expire after 30 minutes
 
 
 class Token(BaseModel):
@@ -77,6 +71,7 @@ class Token(BaseModel):
         access_token (str): The access token.
         token_type (str): The type of the token.
     """
+
     access_token: str
     token_type: str
 
@@ -105,12 +100,13 @@ async def login_for_access_token(username: str, password: str):
     if username != "admin" or password != "password":
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Incorrect username or password"
+            detail="Incorrect username or password",
         )
     access_token = create_access_token(data={"sub": username})
     return {"access_token": access_token, "token_type": "bearer"}
 
 
+@app.get("/JWT/", response_model=Token)
 def create_access_token(data: dict):
     """
     Create a JWT access token.
@@ -122,7 +118,9 @@ def create_access_token(data: dict):
         str: The encoded JWT token.
     """
     to_encode = data.copy()
-    expire = datetime() + timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
+    expire = datetime.utcnow() + timedelta(
+        minutes=int(ACCESS_TOKEN_EXPIRE_MINUTES)
+    )  # Ensure UTC and proper int casting
     to_encode.update({"exp": expire})
     encoded_jwt = jwt.encode(to_encode, SECRET_KEY, algorithm=ALGORITHM)
     return encoded_jwt
@@ -143,7 +141,7 @@ async def index(request: Request, db: Session = Depends(get_db)):
     animals = db.query(AnimalDB).all()
     return templates.TemplateResponse(
         "index.html",
-        {"request": request, "title": "Our Jungle Residents", "animals": animals}
+        {"request": request, "title": "Our Jungle Residents", "animals": animals},
     )
 
 
@@ -159,7 +157,12 @@ async def read_secure_data():
 
 
 @app.post("/upsert/")
-async def upsert_animal(name: str = Form(...), species: str = Form(...), age: int = Form(...), db: Session = Depends(get_db)):
+async def upsert_animal(
+    name: str = Form(...),
+    species: str = Form(...),
+    age: int = Form(...),
+    db: Session = Depends(get_db),
+):
     """
     Endpoint to insert or update an animal.
 
@@ -182,7 +185,9 @@ async def upsert_animal(name: str = Form(...), species: str = Form(...), age: in
         animal = AnimalDB(name=name, species=species, age=age)
         db.add(animal)
     db.commit()
-    return {"message": f"Saved {animal.name} the {animal.species} (Age: {animal.age}) to the database."}
+    return {
+        "message": f"Saved {animal.name} the {animal.species} (Age: {animal.age}) to the database."
+    }
 
 
 @app.post("/animals/")
@@ -198,12 +203,14 @@ async def create_animal(animal: Animal, db: Session = Depends(get_db)):
         dict: A dictionary containing a message and the animal ID.
     """
     animal_db = AnimalDB(
-        name=animal.name, species=animal.species, age=animal.age
-    )
+        name=animal.name, species=animal.species, age=animal.age)
     db.add(animal_db)
     db.commit()
     db.refresh(animal_db)
-    return {"message": f"Added {animal.name} the {animal.species} to the database.", "id": animal_db.id}
+    return {
+        "message": f"Added {animal.name} the {animal.species} to the database.",
+        "id": animal_db.id,
+    }
 
 
 @app.put("/animals/{animal_id}")
