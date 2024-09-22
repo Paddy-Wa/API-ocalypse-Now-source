@@ -12,6 +12,7 @@ from main import preload_animals
 from main import create_access_token
 from jose import jwt
 import pytest_asyncio
+import warnings
 
 
 # Load environment variables from .env file
